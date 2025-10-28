@@ -1,3 +1,5 @@
+
+import { Zap, Eye, DollarSign } from 'lucide-react';
 import images from "../assets/images";
 
 
@@ -85,3 +87,54 @@ export const processes = [
       image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop'
     }
   ];
+
+
+  // about data //
+ export const missionData = [
+  { title: 'FAST SALES & LEAD GENERATION', icon: Zap, text: 'We utilize cutting-edge technology and targeted marketing to accelerate the property sales cycle and deliver high-quality, pre-qualified leads instantly.' },
+  { title: 'COMPLETE TRANSACTION TRANSPARENCY', icon: Eye, text: 'We provide an open, honest, and clear process for every transaction, ensuring all parties have real-time access to accurate market data and deal status.' },
+  { title: 'MAXIMIZED PROFITABILITY', icon: DollarSign, text: 'Our strategies are designed to optimize returns for investors and buyers while minimizing costs and maximizing closing value for sellers and brokers.' },
+];
+
+
+// services //
+export const serviceData = [
+  { 
+    title: 'FAST SALES & LEAD GENERATION', 
+    icon: Zap, 
+    text: 'We utilize cutting-edge technology and targeted marketing to accelerate the property sales cycle and deliver high-quality, pre-qualified leads instantly.',
+  },
+  { 
+    title: 'COMPLETE TRANSACTION TRANSPARENCY', 
+    icon: Eye, 
+    text: 'We provide an open, honest, and clear process for every transaction, ensuring all parties have real-time access to accurate market data and deal status.',
+  },
+  { 
+    title: 'MAXIMIZED PROFITABILITY', 
+    icon: DollarSign, 
+    text: 'Our strategies are designed to optimize returns for investors and buyers while minimizing costs and maximizing closing value for sellers and brokers.',
+  },
+];
+
+
+export const features = [
+  {
+    id: 1,
+    title: "Communications",
+    desc: "Pretium lectus quam id leo in vitae turpis. Mattis pellentesque id nibh tortor id.",
+    illustration: images.reaEstate,
+    cta: "MORE",
+    cardBg: "#0F1724",   
+    textColor: "#FFFFFF" // white text
+  },
+  {
+    id: 2,
+    title: "Inspired Design",
+    desc: "Nunc consequat interdum varius sit amet mattis vulputate enim nulla. Risus feugiat.",
+    illustration: images.marketing,
+    cta: "MORE",
+    cardBg: "#071627",   // deep navy teal
+    textColor: "#FFFFFF"
+  },
+  
+];

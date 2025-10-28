@@ -53,14 +53,14 @@ export const processes = [
       id: '01',
       title: 'Consultation & Goal Setting',
       description: 'Understand your exact business or investment goals.',
-      image: '📋',
+      image: images.goal,
       bgColor: 'from-orange-300 to-orange-100'
     },
     {
       id: '02',
       title: 'Strategy & Planning',
       description: 'Build a customized roadmap — property, marketing, and lead-gen.',
-      image: '📊',
+      image: images.strategy,
       bgColor: 'from-gray-300 to-gray-100'
     }
   ];

@@ -1,15 +1,18 @@
 import logo from './logo/voralogo.png';
 import heroBackImage from './homeimages/heroback3.png';
-import process1 from './homeimages/process1.png'
-import process2 from './homeimages/process2.png'
-import callToAction from './homeimages/calltoaction.png'
+import goal from './homeimages/goal.png'
+import strategy from './homeimages/strategy.png'
+import callToAction from './homeimages/calltoaction1.png'
+import triangle from './homeimages/triangle.png'
+
 
 const images = {
     logo,
     heroBackImage,
-    process1,
-    process2,
-    callToAction
+    goal,
+    strategy,
+    callToAction,
+    triangle
 }
 
 export default images

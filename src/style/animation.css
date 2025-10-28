@@ -104,3 +104,40 @@
   position: relative;
   z-index: 1;
 }
+
+
+
+/* process */
+/* Bump animation for button */
+@keyframes bump {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.12);
+  }
+}
+
+.whatsapp-btn {
+  animation: bump 1.8s ease-in-out infinite;
+}
+
+.whatsapp-btn:hover {
+  transform: scale(1.15);
+}
+
+/* Darker overlay for mobile screens */
+.hero-overlay {
+  background: linear-gradient(to top, rgba(17, 24, 39, 0.9), rgba(17, 24, 39, 0.6), rgba(17, 24, 39, 0.3));
+}
+
+/* Make overlay darker on smaller screens */
+@media (max-width: 768px) {
+  .hero-overlay {
+    background: linear-gradient(to top, rgba(17, 24, 39, 0.95), rgba(17, 24, 39, 0.8), rgba(17, 24, 39, 0.5));
+  }
+
+  .whatsapp-btn {
+    opacity: 0.85; /* slightly reduced opacity on mobile */
+  }
+}

@@ -377,6 +377,9 @@ const Home = () => {
           </div>
         </motion.section>
 
+
+        
+
         {/* process */}
         <motion.section
           ref={triangleInViewRef}

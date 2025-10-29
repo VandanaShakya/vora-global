@@ -1,10 +1,8 @@
-import React, { useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import images from '../assets/images';
 import { features } from './data';
 import { FaWhatsapp } from 'react-icons/fa';
-
-
 
 const HEADING_COLOR = '#E3CB98';
 
@@ -38,9 +36,28 @@ const imgVariant = {
 };
 
 const Services = () => {
+  // hooks must be called unconditionally and in the same order every render
+  const [loading, setLoading] = useState(true);
+
+  // move refs above any conditional return so hooks order is stable
   const topRef = useRef(null);
   const rightRef = useRef(null);
   const servicesRef = useRef(null);
+
+  useEffect(() => {
+    // Simulate image loading or data fetch
+    const timer = setTimeout(() => setLoading(false), 200);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-[#0d0d21]">
+        {/* Tailwind Spinner */}
+        <div className="w-12 h-12 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -71,14 +88,14 @@ const Services = () => {
 
             <div className="flex items-start sm:items-center">
               <motion.button
-                                      type="button"
-                                      aria-label="Contact us on WhatsApp"
-                                      className="whatsapp-btn flex items-center justify-center gap-2 border border-[#D2AA51] text-black bg-[#D2AA51] px-6 py-3 rounded-full text-sm sm:text-base font-semibold transition-all duration-300"
-                                      whileTap={{ scale: 0.98 }}
-                                    >
-                                      <FaWhatsapp className="text-lg sm:text-xl" />
-                                    Contact Us
-                                    </motion.button>
+                type="button"
+                aria-label="Contact us on WhatsApp"
+                className="whatsapp-btn flex items-center justify-center gap-2 border border-[#D2AA51] text-black bg-[#D2AA51] px-6 py-3 rounded-full text-sm sm:text-base font-semibold transition-all duration-300"
+                whileTap={{ scale: 0.98 }}
+              >
+                <FaWhatsapp className="text-lg sm:text-xl" />
+                Contact Us
+              </motion.button>
             </div>
           </motion.div>
 

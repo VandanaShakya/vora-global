@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, useAnimation, AnimatePresence } from 'framer-motion';
+import { motion, useAnimation, AnimatePresence, useReducedMotion } from 'framer-motion';
 import images from '../assets/images';
 import Navbar from '../components/Navbar';
 import { FaWhatsapp } from 'react-icons/fa';
@@ -50,38 +50,18 @@ const IconMap = {
 
 const Home = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
+
   // configure WhatsApp link (change number & message as needed)
-  const waNumber = '';
+  const waNumber = ''; // <-- put full phone number in international format without '+' or '-' e.g. 971501234567
   const prefill = encodeURIComponent('Hi — I am interested in a consultation about Dubai real estate.');
-  
+  const waLink = waNumber ? `https://wa.me/${waNumber}?text=${prefill}` : `https://wa.me/?text=${prefill}`;
 
   const openWhatsApp = () => {
     window.open(waLink, '_blank', 'noopener,noreferrer');
   };
 
-  // loading state
-  const [isLoading, setIsLoading] = useState(true);
-  useEffect(() => {
-    const onLoad = () => setIsLoading(false);
-    // if window load already happened (rare) handle that
-    if (document.readyState === 'complete') {
-      setIsLoading(false);
-      return;
-    }
-    window.addEventListener('load', onLoad);
-
-    const fallback = setTimeout(() => setIsLoading(false), 1500);
-
-    return () => {
-      window.removeEventListener('load', onLoad);
-      clearTimeout(fallback);
-    };
-  }, []);
-
   // service card //
-  // track flipped state per card (keyed by index)
   const [flipped, setFlipped] = useState({});
-
   const toggleFlip = (key) => {
     setFlipped((prev) => ({ ...prev, [key]: !prev[key] }));
   };
@@ -110,7 +90,6 @@ const Home = () => {
   const triangleControls = useAnimation();
   const [triangleInViewRef, triangleInView] = useInView({ triggerOnce: true, rootMargin: "-120px" });
 
-  // we are using the same ref for both the container and inView hook
   useEffect(() => {
     if (triangleInView) {
       triangleControls.start("visible");
@@ -121,43 +100,14 @@ const Home = () => {
   const sectionViewport = { once: true, amount: 0.18 };
   const sectionTransition = { duration: 0.9 };
 
+  // reduced motion preference
+  const prefersReducedMotion = useReducedMotion();
+
   return (
     <>
       <Navbar />
 
-      <AnimatePresence>
-        {isLoading && (
-          <motion.div
-            key="loader"
-            initial={{ opacity: 1 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: 0.4 } }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black"
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.5 }}
-              className="flex flex-col items-center gap-4"
-            >
-              <motion.div
-                className="w-20 h-20 rounded-full flex items-center justify-center border-4 border-[#D2AA51]/40"
-                animate={{ rotate: 360 }}
-                transition={{ repeat: Infinity, ease: "linear", duration: 1.2 }}
-              >
-                <FaWhatsapp className="text-2xl text-[#D2AA51]" />
-              </motion.div>
-              <div className="text-center">
-                <h3 className="text-white text-lg font-semibold">Vora Global</h3>
-                <p className="text-gray-400 text-sm">Preparing the experience…</p>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Wrap the rest inside a div which remains accessible while loader shows */}
-      <div aria-hidden={isLoading} className={isLoading ? 'pointer-events-none select-none' : ''}>
+      <div>
 
         {/* HERO */}
         <motion.div
@@ -210,6 +160,7 @@ const Home = () => {
               aria-label="Contact us on WhatsApp"
               className="whatsapp-btn flex items-center justify-center gap-2 border border-[#D2AA51] text-black bg-[#D2AA51] px-6 py-3 rounded-full text-sm sm:text-base font-semibold transition-all duration-300"
               whileTap={{ scale: 0.98 }}
+              onClick={openWhatsApp}
             >
               <FaWhatsapp className="text-lg sm:text-xl" />
               Book a Consultation
@@ -290,16 +241,42 @@ const Home = () => {
                 },
               }}
               initial="hidden"
-              animate="show"
+              whileInView="show"
+              viewport={sectionViewport}
               className="flex justify-center items-center gap-8 flex-wrap max-w-7xl mx-auto"
             >
               {services.map((service, idx) => {
                 const IconComponent = IconMap[service.iconName] || Zap;
                 const key = `card-${idx}`;
+                const controls = useAnimation();
+                // use react-intersection-observer hook correctly for each card
+                const [ref, inView] = useInView({ amount: 0.4, triggerOnce: true });
+
+                useEffect(() => {
+                  if (prefersReducedMotion) {
+                    // jump to final state
+                    controls.set({ rotateY: flipped[key] ? 180 : 0 });
+                    return;
+                  }
+
+                  if (inView) {
+                    controls.start({
+                      rotateY: flipped[key] ? 180 : 0,
+                      transition: { duration: 0.7, ease: "easeOut" },
+                    });
+                  } else {
+                    // when not in view, keep it at a neutral angle so entry looks nice
+                    controls.start({
+                      rotateY: 90,
+                      transition: { duration: 0.6, ease: "easeInOut" },
+                    });
+                  }
+                }, [inView, flipped[key], controls, prefersReducedMotion, key]);
 
                 return (
                   <motion.div
                     key={key}
+                    ref={ref}
                     variants={{
                       hidden: { opacity: 0, y: 40 },
                       show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
@@ -308,9 +285,8 @@ const Home = () => {
                     className="h-80 w-80 cursor-pointer"
                   >
                     <motion.div
-                      initial={{ rotateY: 0 }}
-                      whileHover={{ rotateY: 180 }}
-                      animate={{ rotateY: flipped[key] ? 180 : 0 }}
+                      initial={{ rotateY: 90 }}
+                      animate={controls}
                       transition={{ duration: 0.6 }}
                       style={{ transformStyle: "preserve-3d" }}
                       className="w-full h-full relative"
@@ -329,16 +305,13 @@ const Home = () => {
                       {/* FRONT */}
                       <motion.div
                         className="absolute w-full h-full p-[2px] rounded-xl bg-gradient-to-r from-[#c9a52f] via-[#eed33d] to-[#f8eecd] card-face"
-                        style={{
-                          backfaceVisibility: "hidden",
-                        }}
+                        style={{ backfaceVisibility: "hidden" }}
                       >
                         <div className="h-full bg-gray-900/95 p-6 md:p-8 rounded-xl flex flex-col">
                           <div className="flex items-center space-x-4 mb-4">
                             <IconComponent className="w-8 h-8 text-blue-400" />
                             <h3 className="text-2xl font-semibold text-white tracking-wide">{service.title}</h3>
                           </div>
-
                           <ul className="space-y-3 text-gray-300 text-base mt-2 flex-grow">
                             {service.items.map((item, i) => (
                               <li key={i} className="flex items-start">
@@ -374,11 +347,9 @@ const Home = () => {
                 );
               })}
             </motion.div>
+
           </div>
         </motion.section>
-
-
-        
 
         {/* process */}
         <motion.section
@@ -486,14 +457,14 @@ const Home = () => {
 
         {/* testimonials */}
         <motion.section
-  className="pb-40 bg-gray-950 text-gray-300 pt-16 px-4 sm:px-6 lg:px-8" // 👈 changed py-16 → pt-16 to remove bottom padding
-  initial="hidden"
-  whileInView="visible"
-  viewport={sectionViewport}
-  transition={sectionTransition}
-  variants={{ hidden: {}, visible: {} }}
->
-  <style>{`
+          className="pb-40 bg-gray-950 text-gray-300 pt-16 px-4 sm:px-6 lg:px-8"
+          initial="hidden"
+          whileInView="visible"
+          viewport={sectionViewport}
+          transition={sectionTransition}
+          variants={{ hidden: {}, visible: {} }}
+        >
+          <style>{`
     @keyframes floatY {
       0%,100% { transform: translateY(0); }
       50% { transform: translateY(-6px); }
@@ -529,101 +500,100 @@ const Home = () => {
     }
   `}</style>
 
-  <div className="max-w-7xl mx-auto">
-    {/* Header */}
-    <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center justify-between mb-16 relative">
-      <div className="relative flex items-center w-full gap-0">
-        {/* Golden circle with W */}
-        <div
-          className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-[#D2AA51] via-[#f1d07a] to-[#D2AA51]
+          <div className="max-w-7xl mx-auto">
+            {/* Header */}
+            <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center justify-between mb-16 relative">
+              <div className="relative flex items-center w-full gap-0">
+                {/* Golden circle with W */}
+                <div
+                  className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-[#D2AA51] via-[#f1d07a] to-[#D2AA51]
                      flex items-center justify-center relative z-10 border border-white/10 shadow-[0_8px_20px_rgba(13,13,33,0.5)]
                      animate-float"
-        >
-          <span className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white font-[cursive] animate-wave" style={{ display: "inline-block" }}>
-            W
-          </span>
-        </div>
+                >
+                  <span className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white font-[cursive] animate-wave" style={{ display: "inline-block" }}>
+                    W
+                  </span>
+                </div>
 
-        {/* Heading (rest of text) */}
-        <h1
-          className="relative z-20 text-3xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight leading-tight pl-2 sm:pl-4"
-          style={{ lineHeight: 1.05, fontFamily: "'Poppins', sans-serif" }}
-        >
-          <span className="block">
-            <span className="text-white/90 font-[Playfair_Display] italic">hat Our </span>
-            <span className="text-[#D2AA51] text-shine font-[Playfair_Display] italic">Clients</span>{" "}
-            <span className="text-white/90 font-[Playfair_Display] italic">Say</span>
-          </span>
-        </h1>
-      </div>
+                {/* Heading (rest of text) */}
+                <h1
+                  className="relative z-20 text-3xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight leading-tight pl-2 sm:pl-4"
+                  style={{ lineHeight: 1.05, fontFamily: "'Poppins', sans-serif" }}
+                >
+                  <span className="block">
+                    <span className="text-white/90 font-[Playfair_Display] italic">hat Our </span>
+                    <span className="text-[#D2AA51] text-shine font-[Playfair_Display] italic">Clients</span>{" "}
+                    <span className="text-white/90 font-[Playfair_Display] italic">Say</span>
+                  </span>
+                </h1>
+              </div>
 
-      {/* Navigation Arrows */}
-      <div className="hidden sm:flex gap-4 mt-6 sm:mt-0">
-        <button
-          onClick={handlePrev}
-          className="p-3 rounded-full border border-gray-700 hover:border-[#D2AA51] hover:text-[#D2AA51] transition-all duration-300 text-gray-400 bg-transparent"
-          aria-label="Previous testimonial"
-        >
-          <ChevronLeft size={24} />
-        </button>
-        <button
-          onClick={handleNext}
-          className="p-3 rounded-full border border-gray-700 hover:border-[#D2AA51] hover:text-[#D2AA51] transition-all duration-300 text-gray-400 bg-transparent"
-          aria-label="Next testimonial"
-        >
-          <ChevronRight size={24} />
-        </button>
-      </div>
-    </motion.div>
+              {/* Navigation Arrows */}
+              <div className="hidden sm:flex gap-4 mt-6 sm:mt-0">
+                <button
+                  onClick={handlePrev}
+                  className="p-3 rounded-full border border-gray-700 hover:border-[#D2AA51] hover:text-[#D2AA51] transition-all duration-300 text-gray-400 bg-transparent"
+                  aria-label="Previous testimonial"
+                >
+                  <ChevronLeft size={24} />
+                </button>
+                <button
+                  onClick={handleNext}
+                  className="p-3 rounded-full border border-gray-700 hover:border-[#D2AA51] hover:text-[#D2AA51] transition-all duration-300 text-gray-400 bg-transparent"
+                  aria-label="Next testimonial"
+                >
+                  <ChevronRight size={24} />
+                </button>
+              </div>
+            </motion.div>
 
-    {/* Testimonials Grid */}
-    <motion.div variants={fadeUp} className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-4"> {/* 👈 reduced mb-8 to mb-4 */}
-      {visibleTestimonials.map((testimonial, index) => (
-        <div
-          key={index}
-          className={`${index === 0 ? "block" : "hidden sm:block"} bg-gray-900 run-border p-8 transition-all duration-300 rounded-xl shadow-sm border border-transparent hover:border-white/5`}
-        >
-          <div className="text-teal-500 text-3xl mb-4 leading-none">"</div>
-          <p className="text-gray-300 mb-8 leading-relaxed text-base">
-            {testimonial.quote}
-          </p>
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-800 flex-shrink-0">
-              <img
-                src={testimonial.image}
-                alt={testimonial.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div>
-              <p className="font-semibold text-white">{testimonial.name}</p>
-              <p className="text-gray-500 text-sm">{testimonial.role}</p>
-            </div>
+            {/* Testimonials Grid */}
+            <motion.div variants={fadeUp} className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-4">
+              {visibleTestimonials.map((testimonial, index) => (
+                <div
+                  key={index}
+                  className={`${index === 0 ? "block" : "hidden sm:block"} bg-gray-900 run-border p-8 transition-all duration-300 rounded-xl shadow-sm border border-transparent hover:border-white/5`}
+                >
+                  <div className="text-teal-500 text-3xl mb-4 leading-none">"</div>
+                  <p className="text-gray-300 mb-8 leading-relaxed text-base">
+                    {testimonial.quote}
+                  </p>
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-800 flex-shrink-0">
+                      <img
+                        src={testimonial.image}
+                        alt={testimonial.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-white">{testimonial.name}</p>
+                      <p className="text-gray-500 text-sm">{testimonial.role}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </motion.div>
+
+            {/* Mobile Navigation */}
+            <motion.div variants={fadeIn} className="flex sm:hidden gap-4 justify-center mb-4">
+              <button
+                onClick={handlePrev}
+                className="p-3 rounded-full border border-gray-700 hover:border-teal-500 hover:text-teal-500 transition-all duration-300 text-gray-400"
+                aria-label="Previous testimonial"
+              >
+                <ChevronLeft size={24} />
+              </button>
+              <button
+                onClick={handleNext}
+                className="p-3 rounded-full border border-gray-700 hover:border-teal-500 hover:text-teal-500 transition-all duration-300 text-gray-400"
+                aria-label="Next testimonial"
+              >
+                <ChevronRight size={24} />
+              </button>
+            </motion.div>
           </div>
-        </div>
-      ))}
-    </motion.div>
-
-    {/* Mobile Navigation */}
-    <motion.div variants={fadeIn} className="flex sm:hidden gap-4 justify-center mb-4"> {/* 👈 reduced mb-8 to mb-4 */}
-      <button
-        onClick={handlePrev}
-        className="p-3 rounded-full border border-gray-700 hover:border-teal-500 hover:text-teal-500 transition-all duration-300 text-gray-400"
-        aria-label="Previous testimonial"
-      >
-        <ChevronLeft size={24} />
-      </button>
-      <button
-        onClick={handleNext}
-        className="p-3 rounded-full border border-gray-700 hover:border-teal-500 hover:text-teal-500 transition-all duration-300 text-gray-400"
-        aria-label="Next testimonial"
-      >
-        <ChevronRight size={24} />
-      </button>
-    </motion.div>
-  </div>
-</motion.section>
-
+        </motion.section>
 
         {/* cta */}
         <motion.section
@@ -666,8 +636,6 @@ const Home = () => {
                 </p>
               </div>
             </motion.div>
-
-
 
             {/* Right Section - full screen, no margin/padding */}
             <motion.div variants={fadeIn} className="relative w-full h-[60vh] md:h-screen">

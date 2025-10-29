@@ -21,7 +21,12 @@ import serviceHero4 from './services/servicehero4.jpg'
 
 // provide services //
 import reaEstate from './services/realEstate.webp'
-import marketing from './services/marketing.webp'
+import marketing from './services/marketing.png'
+
+
+// contact //
+import contactHero from './contactus/contacthero.png'
+import formRightImage from './contactus/formright.png'
 
 
 const images = {
@@ -44,7 +49,11 @@ const images = {
     serviceHero3,
     serviceHero4,
     reaEstate,
-marketing,
+    marketing,
+
+    // contact //
+    contactHero,
+    formRightImage,
 }
 
 export default images

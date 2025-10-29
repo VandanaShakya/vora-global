@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect} from "react";
 import { motion } from "framer-motion";
 import images from "../assets/images";
 import { missionData } from "./data";
@@ -43,6 +43,23 @@ const cardVariant = {
 };
 
 const About = () => {
+   const [loading, setLoading] = useState(true);
+  
+    useEffect(() => {
+      // Simulate image loading or data fetch
+      const timer = setTimeout(() => setLoading(false), 200);
+      return () => clearTimeout(timer);
+    }, []);
+  
+    if (loading) {
+      return (
+        <div className="flex justify-center items-center min-h-screen bg-[#0d0d21]">
+          {/* Tailwind Spinner */}
+          <div className="w-12 h-12 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      );
+    }
+  
   return (
     <>
       <motion.div

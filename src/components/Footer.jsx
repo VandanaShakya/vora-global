@@ -39,7 +39,7 @@ const Footer = () => {
 
         {/* Bottom Section: Copyright Notice */}
         <div className="text-center text-xs text-gray-400 pt-4">
-          &copy; 2025 DataSolutions. All rights reserved.
+          &copy; 2025 Vora Global. All rights reserved.
         </div>
         
       </div>
